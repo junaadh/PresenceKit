@@ -1,0 +1,22 @@
+# Swift Package Manager
+/.build/
+/Packages/
+
+# Xcode
+*.xcworkspace
+*.xcuserstate
+*.xccheckout
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcuserdatad/
+DerivedData/
+
+# macOS
+.DS_Store
+
+# Other
+.idea/
+.env
+*.swp
+*.tmp
+*.log
