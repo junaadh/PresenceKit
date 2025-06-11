@@ -44,6 +44,27 @@ public class Activity: Encodable {
         self.activityType = activityType
     }
 
+    public init(from payload: [String: Any]) {
+        self.state = payload["state"] as? String
+        self.details = payload["details"] as? String
+        self.assets = (payload["assets"] as? [String: Any]).map { Assets(from: $0) }
+        self.buttons = (payload["buttons"] as? [[String: Any]]).map { Button.from(array: $0) }
+        self.activityType = ActivityType(from: payload["activity_type"])
+    }
+
+    public func toNSDictionary() -> NSDictionary? {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        do {
+            let data = try encoder.encode(self)
+            let json = try JSONSerialization.jsonObject(with: data, options: [])
+            return json as? NSDictionary
+        } catch let err {
+            print(err)
+            return nil
+        }
+    }
+
     @discardableResult public func setState(_ value: String) -> Self {
         state = value
         return self
@@ -156,6 +177,13 @@ public class Assets: Codable {
         self.smallText = smallText
     }
 
+    public init(from payload: [String: Any]) {
+        self.largeImage = payload["large_image"] as? String
+        self.smallImage = payload["small_image"] as? String
+        self.largeText = payload["large_text"] as? String
+        self.smallText = payload["small_text"] as? String
+    }
+
     @discardableResult public func setLargeImage(_ value: String) -> Self {
         largeImage = value
         return self
@@ -212,13 +240,27 @@ public class Secrets: Codable {
     }
 }
 
-public class Button: Codable {
+public final class Button: Codable {
     var label: String
     var url: String
 
     public init(label: String, url: String) {
         self.label = label
         self.url = url
+    }
+
+    public init?(from payload: [String: Any]) {
+        guard
+            let label = payload["label"] as? String,
+            let url = payload["label"] as? String
+        else { return nil }
+
+        self.label = label
+        self.url = url
+    }
+
+    public static func from(array payload: [[String: Any]]) -> [Button] {
+        return payload.compactMap { Self.init(from: $0) }
     }
 }
 
@@ -229,4 +271,11 @@ public enum ActivityType: UInt8, Codable {
     case watching = 3
     case custom = 4
     case competing = 5
+}
+
+extension ActivityType {
+    public init(from payload: Any?) {
+        let raw = payload as? UInt8 ?? 0
+        self = ActivityType(rawValue: raw) ?? ActivityType.playing
+    }
 }
