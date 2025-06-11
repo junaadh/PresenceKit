@@ -16,7 +16,11 @@ public final class DiscordIPCClient: DiscordIPC {
     }
 
     private static func getPipeBasePath() -> URL {
-        return FileManager.default.temporaryDirectory
+        if let tmpDir = ProcessInfo.processInfo.environment["TMPDIR"] {
+            return URL(fileURLWithPath: tmpDir, isDirectory: true)
+        } else {
+            return URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        }
     }
 
     public func getClientId() -> String {
@@ -26,7 +30,7 @@ public final class DiscordIPCClient: DiscordIPC {
     public func connectIpc() throws {
         let basePath = Self.getPipeBasePath()
 
-        for i in 0 ..< 10 {
+        for i in 0..<10 {
             // let ipcPath = URL(fileURLWithPath: "/tmp/test-ipc")
             let ipcPath = basePath.appendingPathComponent("discord-ipc-\(i)")
             if FileManager.default.fileExists(atPath: ipcPath.path) {
@@ -36,7 +40,7 @@ public final class DiscordIPCClient: DiscordIPC {
                     sock = handle
                     return
                 } catch {
-                    continue // Try the next pipe index
+                    continue  // Try the next pipe index
                 }
             }
         }
